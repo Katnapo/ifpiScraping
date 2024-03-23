@@ -1,0 +1,18 @@
+AI - Claude 3 Sonnet
+
+
+Prompt 1 - As a professional software engineer, could you setup a set of web scraper functions and classes with the json I provide below. I am using FastAPI in python, use the most appropriate web scraping module or modules. The scrape targets listed in the json should be outputted by the logic. Create as much logic as possible with the json I provide, I have laid out this json to look like xml.
+
+Output was reasonable but incl. OpenAPI logic - wanted to separate API logic from the scraping logic.
+
+Prompt 2 - Could you move the logic into a single python file? Use as many classes and functions as neccesary.
+
+Output was good but included typing and no comments.
+
+Prompt 3 - This is a good start, could you simplify this code by removing typing. Could you also add concice comments to significant areas of the code.
+
+Used this output code as a baseline.
+
+Also, funny thing to note is co-pilot was listing suggestions here for other prompts as well, however the prompts
+had requirements that are only available in the task PDF / email questions which I have / had not given it at this
+stage (I can see prompts that other interviewees for this task have given and noted).
