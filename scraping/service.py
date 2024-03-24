@@ -3,7 +3,7 @@ import concurrent
 import requests
 from bs4 import BeautifulSoup
 from constants import Constants
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class MusicScraper:
 
@@ -167,22 +167,22 @@ class ScraperManager:
 
         homeIndexURLs = self.scrape_home_page()
         songData = self.scrape_index_songs(homeIndexURLs['indexPageURLs'])
-        print(songData)
-        songDataList = []
-        songDataList.append(songData)
 
-        # Iterate through next 49 indexes. URL links are in the format of /page/2, /page/3 etc
-        for i in range(2, 51):
+        songDataList = [songData]
 
-            indexURL = f"{Constants.homeUrl}/page/{i}"
-            songURLs = self.scrape_index_page(indexURL)
-            songData = self.scrape_index_songs(songURLs['indexPageURLs'])
-            print(songData)
-            songDataList.append(songData)
+        # Create a thread pool
+        with ThreadPoolExecutor() as executor:
+            # Submit tasks for scraping index pages
+            futures = [executor.submit(self.scrape_index_page, f"{Constants.homeUrl}/page/{i}") for i in range(2, 51)]
 
-        print(songDataList)
+            # Collect results as tasks complete
+            for future in as_completed(futures):
+                songURLs = future.result()['indexPageURLs']
+                songData = self.scrape_index_songs(songURLs)
+                songDataList.append(songData)
+                print(songData)
 
-        return songData
+        return songDataList
 
 # Example usage
 
