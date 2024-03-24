@@ -1,6 +1,9 @@
+import concurrent
+
 import requests
 from bs4 import BeautifulSoup
 from constants import Constants
+from concurrent.futures import ThreadPoolExecutor
 
 class MusicScraper:
 
@@ -153,8 +156,10 @@ class ScraperManager:
     def scrape_index_songs(self, urls):
 
         songData = []
-        for url in urls:
-            songData.append(self.scrape_song_page(url))
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.scrape_song_page, url) for url in urls]
+            for future in concurrent.futures.as_completed(futures):
+                songData.append(future.result())
 
         return songData
 
@@ -176,12 +181,6 @@ class ScraperManager:
             songDataList.append(songData)
 
         print(songDataList)
-
-
-
-
-
-
 
         return songData
 
