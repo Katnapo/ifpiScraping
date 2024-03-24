@@ -39,10 +39,13 @@ class Constants:
                     "class": "edldv",
                     "type": "div",
                     "inner": {
-                        "contains": ["href", "target", "rel"],
+                        "contains": ["href", "target", "rel", "text"],
                         "type": "a",
                         "target": "_blank",
                         "rel": "nofollow",
+                        "href": None,
+                        "text": "Download",
+                        "special": "many",
                         "scrape_target": "href"
                     }
                 }
@@ -56,8 +59,9 @@ class Constants:
                 "id": "content",
                 "type": "div",
                 "inner": {
-                    "contains": ["class", "id"],
+                    "contains": ["class"],
                     "class": "entry",
+                    "type": "div",
                     "id" : "post-",
                     "special": "many",
                     "inner": {
@@ -89,26 +93,23 @@ class Constants:
                     "contains": ["class"],
                     "class": "pagination",
                     "type": "div",
-                    "special": "after",
-                    "inner":
-                    [{
-                        "contains": ["class", "href", "text"],
+                    "special": "top",
+                    "inner": {
+                        "contains": ["class", "text"],
                         "class" : "page-numbers",
+                        "special": "many",
                         "href": None,
                         "text": None,
-                        "scrape_target": ["text", "href"],
+                        "scrape_target": "text",
                         "type": "a"
                     },
-                    {
-                        "contains": ["class", "text"],
-                        "type": "span",
-                        "class": "page-numbers dots",
-                        "text": "..."
-                    }]
                     }
                 }
             }
         }
+
+    # URL Home page
+    homeUrl = "https://intmusic.net"
 
 
 
