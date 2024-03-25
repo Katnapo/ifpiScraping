@@ -1,4 +1,4 @@
-#Technical Interview Test for IFPI
+# Technical Interview Test for IFPI
 
 In this repo you will find a technical test for IFPI. The test is to build a web scraping application for 
 the website https://intmusic.net/ and store the data in a database.
