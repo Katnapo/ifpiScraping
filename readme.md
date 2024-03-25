@@ -1,4 +1,4 @@
-**Technical Interview Test for IFPI **
+#Technical Interview Test for IFPI
 
 In this repo you will find a technical test for IFPI. The test is to build a web scraping application for 
 the website https://intmusic.net/ and store the data in a database.
@@ -33,8 +33,7 @@ works too). I would reccomend you install either one and run the schema file in 
 
 4. Install Python 3.12 (or higher to avoid any issues) from https://www.python.org/downloads/
 
-
-** Command Line Instructions **
+**Command Line Instructions **
 
 1. Open a command prompt and navigate to the directory where you cloned the repository.
 2. Do the following to install the database schema if you are not using a GUI (Guides listed below too):
@@ -53,10 +52,11 @@ pip install -r requirements.txt
 4. Run the following command to start the FastAPI server:
 
 If using a virtual environment:
-# If using virtualenv
+
+If using virtualenv
 .\venv\Scripts\activate
 
-# If using venv (standard library)
+If using venv (standard library)
 .\venv\Scripts\activate.bat
 
 navigate to the directory where you cloned the repository and run the following command to start the FastAPI server:
