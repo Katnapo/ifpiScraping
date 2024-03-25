@@ -13,6 +13,7 @@ class Constants:
                     "text": None,
                     "scrape_target": "text",
                     "class": "fleft",
+                    "quick_scrape_val": "one",
                     "type": "h2"
                 }
             },
@@ -24,6 +25,7 @@ class Constants:
                 "inner": {
                     "contains": ["style", "text"],
                     "style": "float:right;",
+                    "quick_scrape_val": "one",
                     "text": None,
                     "type": "span",
                     "scrape_target": "text"
@@ -45,6 +47,7 @@ class Constants:
                         "rel": "nofollow",
                         "href": None,
                         "text": "Download",
+                        "quick_scrape_val": "many",
                         "special": "many",
                         "scrape_target": "href"
                     }
@@ -78,6 +81,7 @@ class Constants:
                                 "type": "a",
                                 "href": None,
                                 "rel": "bookmark",
+                                "quick_scrape_val": "many",
                                 "scrape_target": "href",
                                 "text": "Read More"
                             }
@@ -93,11 +97,11 @@ class Constants:
                     "contains": ["class"],
                     "class": "pagination",
                     "type": "div",
-                    "special": "top",
                     "inner": {
                         "contains": ["class", "text"],
                         "class" : "page-numbers",
                         "special": "many",
+                        "quick_scrape_val": "many",
                         "href": None,
                         "text": None,
                         "scrape_target": "text",
