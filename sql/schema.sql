@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `songs` (
   `date` VARCHAR(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `song_title` (`song_title`) USING HASH
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 -- Dumping data for table ifpiscraping.songs: ~0 rows (approximately)
 

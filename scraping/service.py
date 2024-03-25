@@ -101,6 +101,9 @@ class ScraperManager:
 
         Returns:
             A list of dictionaries containing the scraped song data.
+
+        To Note: The function uses ThreadPoolExecutor to scrape multiple song pages in parallel.
+
         """
         song_data = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -111,9 +114,10 @@ class ScraperManager:
 
         return song_data
 
-    def scrape_50_indexes(self, db: Session, quick_scrape=True):
+    def scrape_indexes(self, db: Session, index_amount=50, quick_scrape=True):
+
         """
-        Scrape the home page and the first 50 index pages for song data.
+        Scrape the home page and the first x index pages for song data.
 
         Args:
             db (Session): SQLAlchemy database session.
@@ -121,25 +125,34 @@ class ScraperManager:
 
         Returns:
             List[Dict[str, Any]]: A list of dicts containing the scraped song data from the home page and the first 50 index pages.
-        """
 
+        To Note: This is the main function that triggers the scraping process. It scrapes the home page, then the set
+        amount of indexes given to it. There is also multithreading involved at this level.
+        """
+        if index_amount < 2:
+            return None
+
+        # Flatten the scraping dictionary if quick_scrape is True
         scraping_dict = Constants.scraping_dict
         if quick_scrape:
             for page in scraping_dict:
                 for detail in scraping_dict[page]:
                     scraping_dict[page][detail] = flatten_quick_scrape(scraping_dict[page][detail])
 
+        # Scrape the home page and the songs on the page
         home_index_urls = self.scrape_home_page(scraping_dict['HomePage'])
         song_data_list = self.scrape_index_songs(home_index_urls['index_page_urls'], scraping_dict['SongPage'])
+
+        # Save the song data to the database
         for song_data in song_data_list:
-            save_song_data(db, song_data["title"], song_data["url"], song_data["date"], song_data["download_links"] )  # Save the song data to the database
+            save_song_data(db, song_data["title"], song_data["url"], song_data["date"], song_data["download_links"] )
 
         save_max_page(db,  home_index_urls['max_page'])
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = [
                 executor.submit(self.scrape_index_page, f"{Constants.homeUrl}/page/{i}", scraping_dict['HomePage']) for
-                i in range(2, 51)]
+                i in range(2, index_amount + 1)]
 
             for future in concurrent.futures.as_completed(futures):
                 song_urls = future.result()['index_page_urls']

@@ -1,6 +1,14 @@
 class Constants:
+    """
+    Constants class containing the scraping dictionary and other constants.
 
-    # Scraping constants
+    To Note: An unconventional way to map scraping data. BS4 initially went layer by layer through
+    each datapoint, but I took the liberty of placing the "quick_scrape_val" in the layer where the
+    desired data would be; this way, the scraper can quickly grab the data without having to go through
+    the entire layer structure. However, one benefit of the current structure is useful for testing if the
+    site is being updated or if the structure changes.
+
+    """
     scraping_dict = {
 
         "SongPage":{
@@ -112,12 +120,15 @@ class Constants:
             }
         }
 
+    # Conventions - When an attribute is not a set value (for example, there is a href but the link varies across
+    # elements) include the existence of said attribute in the JSON but set its value to None.
+
     # URL Home page
     homeUrl = "https://intmusic.net"
 
     # Database constants
     SQLALCHEMY_DATABASE_URL = "mariadb://root:comsc@localhost:3306/ifpiscraping"
-
+    # Note - structure for connection string is dialect+driver://username:password@host:port/database
 
 
 

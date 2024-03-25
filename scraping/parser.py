@@ -21,6 +21,7 @@ def extract_scrape_target(element, scrape_target):
         return None
 
 def find_elements(html, element_dict):
+
     """
     Find HTML elements based on the provided dictionary structure.
 
@@ -30,6 +31,9 @@ def find_elements(html, element_dict):
 
     Returns:
         The found elements or extracted values based on the dictionary structure.
+
+    To Note: This function is recursive, and will call itself if an inner dictionary is found.
+    This function also serves as the main scraping logic.
     """
     soup = BeautifulSoup(html, 'html.parser')
     element_type = element_dict['type']

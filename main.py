@@ -6,7 +6,7 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Hello IFPI!"}
 
 app.include_router(scraping_router, prefix="/scraping")
 
