@@ -115,6 +115,13 @@ class Constants:
     # URL Home page
     homeUrl = "https://intmusic.net"
 
+    # Database constants
+    DB_USER = "root"
+    DB_PASSWORD = "comsc"
+    DB_HOST = "localhost"
+    DB_PORT = 3306
+    DB_NAME = "ifpiscraping"
+
 
 
 

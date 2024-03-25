@@ -2,6 +2,7 @@ import concurrent.futures
 from utils import fetch_html
 from parser import find_elements
 from constants import Constants
+from database import save_song_data, save_max_page  # Import the save_song_data function
 
 class MusicScraper:
     def __init__(self, url=Constants.homeUrl):
@@ -114,12 +115,13 @@ class ScraperManager:
         Scrape the home page and the first 50 index pages for song data.
 
         Args:
-            quick_scrape (optional): Whether to use a quick scrape method. Defaults to True.
+            quick_scrape (bool, optional): Whether to use a quick scrape method. Defaults to True.
 
         Returns:
-            A list of lists containing the scraped song data from the home page
+            List[Dict[str, Any]]]: A list of dicts containing the scraped song data from the home page
                 and the first 50 index pages.
         """
+
         scraping_dict = Constants.scraping_dict
         if quick_scrape:
             for page in scraping_dict:
@@ -128,18 +130,20 @@ class ScraperManager:
 
         home_index_urls = self.scrape_home_page(scraping_dict['HomePage'])
         song_data = self.scrape_index_songs(home_index_urls['index_page_urls'], scraping_dict['SongPage'])
+        save_song_data(song_data)  # Save the song data to the database
+        save_max_page(home_index_urls['max_page'])
         song_data_list = [song_data]
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(self.scrape_index_page, f"{Constants.homeUrl}/page/{i}", scraping_dict['HomePage']) for i in range(2, 51)]
+            futures = [
+                executor.submit(self.scrape_index_page, f"{Constants.homeUrl}/page/{i}", scraping_dict['HomePage']) for
+                i in range(2, 51)]
 
             for future in concurrent.futures.as_completed(futures):
                 song_urls = future.result()['index_page_urls']
                 song_data = self.scrape_index_songs(song_urls, scraping_dict['SongPage'])
+                save_song_data(song_data)  # Save the song data to the database
                 song_data_list.append(song_data)
-                print(f"Scraped index page {len(song_data_list)}")
-                print(song_data)
-                print("---")
 
         return song_data_list
 
