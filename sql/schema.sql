@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS `songs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `song_title` text DEFAULT NULL,
   `page_url` text DEFAULT NULL,
+  `date` VARCHAR(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `song_title` (`song_title`) USING HASH
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;

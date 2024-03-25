@@ -1,8 +1,12 @@
 import concurrent.futures
+
+import MySQLdb
+
 from utils import fetch_html
 from parser import find_elements
 from constants import Constants
-from database import save_song_data, save_max_page  # Import the save_song_data function
+from sqlalchemy.orm import Session
+from database import save_song_data, save_max_page
 
 class MusicScraper:
     def __init__(self, url=Constants.homeUrl):
@@ -85,7 +89,7 @@ class ScraperManager:
         return {
             "title": title_data,
             "date": date_data,
-            "download_link": download_link_data,
+            "download_links": download_link_data,
             "url": song_url
         }
 
@@ -110,16 +114,16 @@ class ScraperManager:
 
         return song_data
 
-    def scrape_50_indexes(self, quick_scrape=True):
+    def scrape_50_indexes(self, db: Session, quick_scrape=True):
         """
         Scrape the home page and the first 50 index pages for song data.
 
         Args:
+            db (Session): SQLAlchemy database session.
             quick_scrape (bool, optional): Whether to use a quick scrape method. Defaults to True.
 
         Returns:
-            List[Dict[str, Any]]]: A list of dicts containing the scraped song data from the home page
-                and the first 50 index pages.
+            List[Dict[str, Any]]: A list of dicts containing the scraped song data from the home page and the first 50 index pages.
         """
 
         scraping_dict = Constants.scraping_dict
@@ -129,10 +133,11 @@ class ScraperManager:
                     scraping_dict[page][detail] = flatten_quick_scrape(scraping_dict[page][detail])
 
         home_index_urls = self.scrape_home_page(scraping_dict['HomePage'])
-        song_data = self.scrape_index_songs(home_index_urls['index_page_urls'], scraping_dict['SongPage'])
-        save_song_data(song_data)  # Save the song data to the database
-        save_max_page(home_index_urls['max_page'])
-        song_data_list = [song_data]
+        song_data_list = self.scrape_index_songs(home_index_urls['index_page_urls'], scraping_dict['SongPage'])
+        for song_data in song_data_list:
+            save_song_data(db, song_data["title"], song_data["url"], song_data["date"], song_data["download_links"] )  # Save the song data to the database
+
+        save_max_page(db,  home_index_urls['max_page'])
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = [
@@ -141,11 +146,10 @@ class ScraperManager:
 
             for future in concurrent.futures.as_completed(futures):
                 song_urls = future.result()['index_page_urls']
-                song_data = self.scrape_index_songs(song_urls, scraping_dict['SongPage'])
-                save_song_data(song_data)  # Save the song data to the database
-                song_data_list.append(song_data)
-
-        return song_data_list
+                song_data_list = self.scrape_index_songs(song_urls, scraping_dict['SongPage'])
+                for song_data in song_data_list:
+                    save_song_data(db, song_data["title"], song_data["url"], song_data["date"],
+                                   song_data["download_links"])  # Save the song data to the database
 
 def flatten_quick_scrape(scraping_dict):
     """

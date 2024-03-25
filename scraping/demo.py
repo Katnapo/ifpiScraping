@@ -1,9 +1,11 @@
 # main.py
 from service import ScraperManager
+from database import get_db
 
 def main():
     scraper_manager = ScraperManager()
-    song_data_list = scraper_manager.scrape_50_indexes()
+    db = next(get_db())
+    song_data_list = scraper_manager.scrape_50_indexes(db)
 
     # Process the scraped data as needed
     for index, song_data in enumerate(song_data_list):

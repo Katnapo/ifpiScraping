@@ -116,12 +116,7 @@ class Constants:
     homeUrl = "https://intmusic.net"
 
     # Database constants
-    DB_USER = "root"
-    DB_PASSWORD = "comsc"
-    DB_HOST = "localhost"
-    DB_PORT = 3306
-    DB_NAME = "ifpiscraping"
-
+    SQLALCHEMY_DATABASE_URL = "mariadb://root:comsc@localhost:3306/ifpiscraping"
 
 
 
