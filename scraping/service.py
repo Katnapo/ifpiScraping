@@ -1,12 +1,9 @@
 import concurrent.futures
-
-import MySQLdb
-
-from utils import fetch_html
-from parser import find_elements
-from constants import Constants
+from scraping.utils import fetch_html
+from scraping.parser import find_elements
+from scraping.constants import Constants
 from sqlalchemy.orm import Session
-from database import save_song_data, save_max_page
+from scraping.database import save_song_data, save_max_page
 
 class MusicScraper:
     def __init__(self, url=Constants.homeUrl):

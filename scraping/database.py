@@ -2,9 +2,9 @@ import MySQLdb
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from constants import Constants
+from scraping.constants import Constants
 from sqlalchemy.orm import Session
-from models import Song, DownloadLink, Variable, VariableType
+from scraping.models import Song, DownloadLink, Variable, VariableType
 
 engine = create_engine(Constants.SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
