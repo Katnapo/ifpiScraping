@@ -1,7 +1,7 @@
 class Constants:
 
     # Scraping constants
-    scrapingDict = {
+    scraping_dict = {
 
         "SongPage":{
             "TitleData":{

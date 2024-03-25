@@ -1,210 +1,166 @@
-import concurrent
-
-import requests
-from bs4 import BeautifulSoup
+import concurrent.futures
+from utils import fetch_html
+from parser import find_elements
 from constants import Constants
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class MusicScraper:
-
     def __init__(self, url=Constants.homeUrl):
-        self.get_soup(url)
+        self.html = fetch_html(url)
 
-    def get_soup(self, url):
-        # Fetch the content from the URL and create a BeautifulSoup object
-        response = requests.get(url)
-        self.soup = BeautifulSoup(response.content, 'html.parser')
-    
-    # Get the attributes from the JSON 'contains' line
-    def attribute_builder(self, element_dict):
-
-        # Extracts the attributes to search for from the JSON constant
-        return_data = {}
-        for attr in element_dict.get('contains'):
-
-            # Note you cant add text as an attribute to search for
-            # You can't search for the scrape_target attribute as it is the variable to be returned
-            if attr == element_dict.get("scrape_target") or attr == "text":
-                continue
-
-            return_data[attr] = element_dict.get(attr)
-
-        return return_data
-    
-    # Get the intended scrape element
-    def extract_scrape_target(self, element, scrape_target):
-
-        if scrape_target == 'text':
-            return element.text.strip()
-        elif scrape_target == 'href':
-            return element.get('href')
-        elif isinstance(scrape_target, list):
-            return [element.text.strip(), element.get('href')]
-        else:
-            return None
-
-    def find_element(self, element_dict):
-
-        # Collect information at this JSON level
-        element_type = element_dict['type']
-        contains_attrs = self.attribute_builder(element_dict)
-        special = element_dict.get('special')
-        string_search = None
-
-        # If the element has text, and that text is not None, then that text can be searched for
-        if element_dict.get("text"):
-            string_search = element_dict.get("text")
-
-        # Find elements based on the specified attributes
-        elements = self.soup.find_all(element_type, attrs=contains_attrs, string=string_search)
-
-        # Handle cases where multiple elements need to be processed i.e on home page with list of songs
-        if special == 'many':
-            results = []
-            # Specifically for home screen where at this point it is not at the bottom element
-
-            if element_dict.get("inner"):
-
-                for element in elements:
-                    inner_data = element_dict['inner']
-
-                    # Important line here to set the soup to the current element being recursed over.
-                    self.soup = element
-
-                    result = self.find_element(inner_data)
-
-                    if result:
-                        results.append(result)
-
-            # Whereas this accounts for both the download links on song page and the maximum page number
-            else:
-                for element in elements:
-                    results.append(self.extract_scrape_target(element, element_dict.get("scrape_target")))
-
-            return results
-
-        # Recursively process inner elements
-        inner_data = element_dict.get('inner')
-        if inner_data:
-            return self.find_element(inner_data)
-
-        else:
-            # If this else is reached, it means that the recursion has reached the bottom of the dictionary and now the
-            # target can be scraped.
-            if elements:
-                element = elements[0]
-                scrape_target = element_dict.get('scrape_target')
-                return self.extract_scrape_target(element, scrape_target)
-
-        return None
-
-    # General entry point for class to scrape a page. This is the only method that should be called from outside the class
     def general_scrape(self, element_dict, reset=False, url=Constants.homeUrl):
+        """
+        General entry point for scraping a page based on the provided dictionary structure.
 
-        # Tells the class to reset the soup object to the new URL
+        Args:
+            element_dict: The dictionary containing the search criteria.
+            reset (optional): Whether to reset the HTML content by fetching from a new URL. Defaults to False.
+            url (optional): The URL to fetch HTML from if reset is True. Defaults to Constants.homeUrl.
+
+        Returns:
+            The found elements or extracted values based on the dictionary structure.
+        """
         if reset:
-            self.get_soup(url)
-
-        return self.find_element(element_dict)
-
+            self.html = fetch_html(url)
+        return find_elements(self.html, element_dict)
 
 class ScraperManager:
-
-    # Create a scrape object
     def __init__(self):
         self.scraper = MusicScraper()
 
-    # Scrape the home page for the song list data and the maximum page number
-    def scrape_home_page(self, scrapingDict=Constants.scrapingDict['HomePage']):
+    def scrape_home_page(self, scraping_dict=Constants.scraping_dict['HomePage']):
+        """
+        Scrape the home page for the song list data and maximum page number.
 
-        maxPageData = self.scraper.general_scrape(scrapingDict['PageNavigationData'])
-        homeURLData = self.scraper.general_scrape(scrapingDict['SongListData'])
+        Args:
+            scraping_dict (optional): The dictionary containing the search criteria for the home page.
+                Defaults to Constants.scraping_dict['HomePage'].
 
-        return {
-            "indexPageURLs": homeURLData,
-            "maxPage": max([int(i.replace(',', '')) for i in maxPageData if i.replace(',', '').isdigit()])
-        }
+        Returns:
+            A dictionary containing the index page URLs and the maximum page number.
+        """
+        max_page_data = self.scraper.general_scrape(scraping_dict['PageNavigationData'])
+        home_url_data = self.scraper.general_scrape(scraping_dict['SongListData'])
 
-    def scrape_index_page(self, indexURL, scrapingDict=Constants.scrapingDict['HomePage']):
-
-        indexPageData = self.scraper.general_scrape(scrapingDict['SongListData'], reset=True, url=indexURL)
-        return {
-            "indexPageURLs": indexPageData
-        }
-    def scrape_song_page(self, songURL, scrapingDict=Constants.scrapingDict['SongPage']):
-
-        titleData = self.scraper.general_scrape(scrapingDict['TitleData'], reset=True, url=songURL)
-        dateData = self.scraper.general_scrape(scrapingDict['DateData'])
-        downloadLinkData = self.scraper.general_scrape(scrapingDict['DownloadLinkData'])
+        max_page = max([int(i.replace(',', '')) for i in max_page_data if i.replace(',', '').isdigit()])
 
         return {
-            "title": titleData,
-            "date": dateData,
-            "downloadLink": downloadLinkData,
-            "url" : songURL
+            "index_page_urls": home_url_data,
+            "max_page": max_page
         }
 
+    def scrape_index_page(self, index_url, scraping_dict=Constants.scraping_dict['HomePage']):
+        """
+        Scrape an index page for the song URLs.
 
-    def scrape_index_songs(self, urls, scrapingDict=Constants.scrapingDict['SongPage']):
+        Args:
+            index_url: The URL of the index page to scrape.
+            scraping_dict (optional): The dictionary containing the search criteria for the index page.
+                Defaults to Constants.scraping_dict['HomePage'].
 
-        songData = []
-        with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(self.scrape_song_page, url, scrapingDict) for url in urls]
+        Returns:
+            A dictionary containing the song URLs on the index page.
+        """
+        index_page_data = self.scraper.general_scrape(scraping_dict['SongListData'], reset=True, url=index_url)
+        return {
+            "index_page_urls": index_page_data
+        }
+
+    def scrape_song_page(self, song_url, scraping_dict=Constants.scraping_dict['SongPage']):
+        """
+        Scrape a song page for the title, date, and download link.
+
+        Args:
+            song_url: The URL of the song page to scrape.
+            scraping_dict (optional): The dictionary containing the search criteria for the song page.
+                Defaults to Constants.scraping_dict['SongPage'].
+
+        Returns:
+            A dictionary containing the song title, date, download link, and URL.
+        """
+        title_data = self.scraper.general_scrape(scraping_dict['TitleData'], reset=True, url=song_url)
+        date_data = self.scraper.general_scrape(scraping_dict['DateData'])
+        download_link_data = self.scraper.general_scrape(scraping_dict['DownloadLinkData'])
+
+        return {
+            "title": title_data,
+            "date": date_data,
+            "download_link": download_link_data,
+            "url": song_url
+        }
+
+    def scrape_index_songs(self, urls, scraping_dict=Constants.scraping_dict['SongPage']):
+        """
+        Scrape multiple song pages in parallel.
+
+        Args:
+            urls: A list of song page URLs to scrape.
+            scraping_dict (optional): The dictionary containing the search criteria for the song pages.
+                Defaults to Constants.scraping_dict['SongPage'].
+
+        Returns:
+            A list of dictionaries containing the scraped song data.
+        """
+        song_data = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.scrape_song_page, url, scraping_dict) for url in urls]
 
             for future in concurrent.futures.as_completed(futures):
-                songData.append(future.result())
+                song_data.append(future.result())
 
-        return songData
-
-    def flatten_quick_scrape(self, scrapingDict):
-
-        flattened_dict = {}
-        for key, value in scrapingDict.items():
-            if isinstance(value, dict):
-                if "quick_scrape_val" in value:
-                    flattened_dict.update(value)
-                else:
-                    flattened_inner = self.flatten_quick_scrape(value)
-                    flattened_dict[key] = flattened_inner
-            else:
-                flattened_dict[key] = value
-        return flattened_dict
+        return song_data
 
     def scrape_50_indexes(self, quick_scrape=True):
+        """
+        Scrape the home page and the first 50 index pages for song data.
 
-        # Method to cut decscending through the JSON dictionary, instead look for first instance of "quick_scrape_val"
-        # and scrape using the dictionary at that level. If quick_scrape_val is set to many and the dict doesn't
-        # contain a special=many, add a special=many to the dictionary
-        scrapingDict = Constants.scrapingDict
+        Args:
+            quick_scrape (optional): Whether to use a quick scrape method. Defaults to True.
+
+        Returns:
+            A list of lists containing the scraped song data from the home page
+                and the first 50 index pages.
+        """
+        scraping_dict = Constants.scraping_dict
         if quick_scrape:
+            for page in scraping_dict:
+                for detail in scraping_dict[page]:
+                    scraping_dict[page][detail] = flatten_quick_scrape(scraping_dict[page][detail])
 
-            for page in scrapingDict:
-                for detail in scrapingDict[page]:
-                    scrapingDict[page][detail] = self.flatten_quick_scrape(scrapingDict[page][detail])
+        home_index_urls = self.scrape_home_page(scraping_dict['HomePage'])
+        song_data = self.scrape_index_songs(home_index_urls['index_page_urls'], scraping_dict['SongPage'])
+        song_data_list = [song_data]
 
-        homeIndexURLs = self.scrape_home_page(scrapingDict['HomePage'])
-        songData = self.scrape_index_songs(homeIndexURLs['indexPageURLs'], scrapingDict['SongPage'])
-        songDataList = [songData]
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.scrape_index_page, f"{Constants.homeUrl}/page/{i}", scraping_dict['HomePage']) for i in range(2, 51)]
 
-        # Create a thread pool
-        with ThreadPoolExecutor() as executor:
-            # Submit tasks for scraping index pages
-            futures = [executor.submit(self.scrape_index_page, f"{Constants.homeUrl}/page/{i}", scrapingDict['HomePage']) for i in range(2, 51)]
+            for future in concurrent.futures.as_completed(futures):
+                song_urls = future.result()['index_page_urls']
+                song_data = self.scrape_index_songs(song_urls, scraping_dict['SongPage'])
+                song_data_list.append(song_data)
+                print(f"Scraped index page {len(song_data_list)}")
+                print(song_data)
+                print("---")
 
-            # Collect results as tasks complete
-            for future in as_completed(futures):
-                songURLs = future.result()['indexPageURLs']
-                songData = self.scrape_index_songs(songURLs, scrapingDict['SongPage'])
-                songDataList.append(songData)
+        return song_data_list
 
-        return songDataList
+def flatten_quick_scrape(scraping_dict):
+    """
+    Flatten a nested dictionary structure by extracting the "quick_scrape_val" values.
 
-# Example usage
+    Args:
+        scraping_dict: The nested dictionary structure to flatten.
 
-scraper_manager = ScraperManager()
-scraper_manager.scrape_50_indexes()
-
-
-
-
-
+    Returns:
+        A flattened dictionary containing the "quick_scrape_val" values.
+    """
+    flattened_dict = {}
+    for key, value in scraping_dict.items():
+        if isinstance(value, dict):
+            if "quick_scrape_val" in value:
+                flattened_dict.update(value)
+            else:
+                flattened_inner = flatten_quick_scrape(value)
+                flattened_dict[key] = flattened_inner
+        else:
+            flattened_dict[key] = value
+    return flattened_dict

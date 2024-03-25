@@ -3,7 +3,7 @@ AI - Claude 3 Sonnet
 
 Prompt 1 - As a professional software engineer, could you setup a set of web scraper functions and classes with the json I provide below. I am using FastAPI in python, use the most appropriate web scraping module or modules. The scrape targets listed in the json should be outputted by the logic. Create as much logic as possible with the json I provide, I have laid out this json to look like xml.
 
-Output was reasonable but incl. OpenAPI logic - wanted to separate API logic from the scraping logic.
+Output was reasonable but incl. OAPI logic - wanted to separate API logic from the scraping logic.
 
 Prompt 2 - Could you move the logic into a single python file? Use as many classes and functions as neccesary.
 
@@ -16,3 +16,16 @@ Used this output code as a baseline.
 Also, funny thing to note is co-pilot was listing suggestions here for other prompts as well, however the prompts
 had requirements that are only available in the task PDF / email questions which I have / had not given it at this
 stage (I can see prompts that other interviewees for this task have given and noted).
+
+I gave it the service codebase and asked what recommendations it would give for the codebase.
+
+Prompt 4 - Could you implement recommendations 1, 2, 3, 4, 6, 8 and 14. Use as many files and/or functions and classes
+as neccesary, but refrain from modifying the logic of the scraper unless you deem it extremely neccesary to fulfil your
+reccomendations
+
+Output:
+Separation of Concerns: The code is now separated into different modules (utils.py, parser.py, scraper.py) for better organization and maintainability.
+Code Organization: The logic is divided into smaller, more focused functions and methods, improving readability and maintainability.
+Error Handling: The fetch_html function now handles and raises exceptions related to network requests.
+Naming Conventions: Variable and function names have been updated to follow Python's naming conventions (e.g., snake_case for functions and variables, CamelCase for classes).
+
