@@ -121,10 +121,11 @@ class ScraperManager:
 
         Args:
             db (Session): SQLAlchemy database session.
+            index_amount (int, optional): The amount of index pages to scrape. Defaults to 50.
             quick_scrape (bool, optional): Whether to use a quick scrape method. Defaults to True.
 
         Returns:
-            List[Dict[str, Any]]: A list of dicts containing the scraped song data from the home page and the first 50 index pages.
+            ~Doesn't return anymore, just saves the data to the database.
 
         To Note: This is the main function that triggers the scraping process. It scrapes the home page, then the set
         amount of indexes given to it. There is also multithreading involved at this level.
